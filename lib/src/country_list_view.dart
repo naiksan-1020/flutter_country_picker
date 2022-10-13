@@ -40,6 +40,12 @@ class CountryListView extends StatefulWidget {
   /// An optional argument for showing "World Wide" option at the beginning of the list
   final bool showWorldWide;
 
+  /// Bottom sheet title
+  final String title;
+
+  /// Bottom sheet title style
+  final TextStyle titleStyle;
+
   const CountryListView({
     Key? key,
     required this.onSelect,
@@ -50,6 +56,8 @@ class CountryListView extends StatefulWidget {
     this.countryListTheme,
     this.searchAutofocus = false,
     this.showWorldWide = false,
+    this.title = "Select your country",
+    this.titleStyle = const TextStyle(fontSize: 16),
   })  : assert(
           exclude == null || countryFilter == null,
           'Cannot provide both exclude and countryFilter',
@@ -117,8 +125,16 @@ class _CountryListViewState extends State<CountryListView> {
             'Search';
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            widget.title,
+            style: widget.titleStyle,
+          ),
+        ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           child: TextField(
@@ -164,8 +180,6 @@ class _CountryListViewState extends State<CountryListView> {
     final TextStyle _textStyle =
         widget.countryListTheme?.textStyle ?? _defaultTextStyle;
 
-    final bool isRtl = Directionality.of(context) == TextDirection.rtl;
-
     return Material(
       // Add Material Widget with transparent color
       // so the ripple effect of InkWell will show on tap
@@ -179,40 +193,39 @@ class _CountryListViewState extends State<CountryListView> {
           Navigator.pop(context);
         },
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 5.0),
+          padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 16.0),
           child: Row(
             children: <Widget>[
-              Row(
-                children: [
-                  const SizedBox(width: 20),
-                  _flagWidget(country),
-                  if (widget.showPhoneCode && !country.iswWorldWide) ...[
-                    const SizedBox(width: 15),
-                    SizedBox(
-                      width: 45,
-                      child: Text(
-                        '${isRtl ? '' : '+'}${country.phoneCode}${isRtl ? '+' : ''}',
-                        style: _textStyle,
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                  ] else
-                    const SizedBox(width: 15),
-                ],
+              _flagWidget(country),
+              const SizedBox(
+                width: 32,
               ),
-              Expanded(
-                child: Text(
-                  CountryLocalizations.of(context)
-                          ?.countryName(countryCode: country.countryCode)
-                          ?.replaceAll(RegExp(r"\s+"), " ") ??
-                      country.name,
-                  style: _textStyle,
-                ),
-              )
+              Text(
+                CountryLocalizations.of(context)
+                        ?.countryName(countryCode: country.countryCode)
+                        ?.replaceAll(RegExp(r"\s+"), " ") ??
+                    country.name,
+                style: _textStyle,
+              ),
+              const Spacer(),
+              _buildCountryCode(country),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildCountryCode(Country country) {
+    final TextStyle textStyle =
+        widget.countryListTheme?.textStyle ?? _defaultTextStyle;
+    final bool isRtl = Directionality.of(context) == TextDirection.rtl;
+    if (country.iswWorldWide) {
+      return Container();
+    }
+    return Text(
+      '${isRtl ? '' : '+'}${country.phoneCode}${isRtl ? '+' : ''}',
+      style: textStyle,
     );
   }
 
